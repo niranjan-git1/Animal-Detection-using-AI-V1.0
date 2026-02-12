@@ -1,0 +1,94 @@
+/* External CSS for Animal Detection System */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+:root {
+    --brand-blue: #0649a1;
+    --border-light: #e5e7eb;
+    --text-main: #000000;
+    --text-muted: #6b7280;
+    --bg-white: #ffffff;
+    --bg-alt: #fafafa;
+}
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: var(--bg-white); 
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+/* Brand Accents */
+.brand-text { 
+    color: var(--brand-blue); 
+}
+
+.brand-border { 
+    border-color: var(--brand-blue); 
+}
+
+.brand-bg { 
+    background-color: var(--brand-blue); 
+}
+
+/* Standard UI Components */
+.standard-border {
+    border: 1px solid var(--border-light);
+}
+
+.preview-box {
+    border: 1px solid #d1d5db;
+    background-color: var(--bg-alt);
+    border-radius: 2px;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: var(--brand-blue);
+    color: white;
+    transition: opacity 0.2s ease-in-out;
+    border-radius: 2px;
+}
+
+.btn-primary:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.btn-primary:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.btn-outline {
+    border: 1px solid var(--brand-blue);
+    color: var(--brand-blue);
+    transition: all 0.2s;
+    border-radius: 2px;
+}
+
+.btn-outline:hover {
+    background-color: rgba(6, 73, 161, 0.05);
+}
+
+/* Typography Utilities */
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-widest { letter-spacing: 0.1em; }
+
+/* Custom Result UI */
+#result-section .standard-border {
+    border-radius: 0;
+}
+
+#prediction-text {
+    font-weight: 900;
+}
+
+/* Animation */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

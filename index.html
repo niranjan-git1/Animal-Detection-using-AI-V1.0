@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Detector AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen py-12 px-4 bg-white">
+
+    <div class="max-w-2xl mx-auto">
+        <header class="border-b pb-6 mb-8 brand-border">
+            <h1 class="text-2xl font-bold brand-text uppercase tracking-tight">Animal Detection System</h1>
+            <p class="text-gray-500 text-sm mt-1 uppercase tracking-wider">Image Classification & Fact Sheet v1.1</p>
+        </header>
+
+        <main class="space-y-8">
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div id="image-preview-container" class="preview-box aspect-square flex items-center justify-center overflow-hidden">
+                    <img id="image-preview" src="https://placehold.co/400x400/ffffff/000000?text=No+Image+Selected" alt="Preview" class="max-h-full max-w-full object-contain">
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-4 standard-border bg-white">
+                        <h2 class="text-xs font-bold mb-2 uppercase text-gray-400 tracking-widest">System Instructions</h2>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>• Select a clear JPG/PNG file</li>
+                            <li>• Supported: Cat, Dog, Elephant, Lion, Horse</li>
+                            <li>• Click analyse for detection & facts</li>
+                        </ul>
+                    </div>
+
+                    <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="previewImage(event)">
+                    <label for="image-upload" class="block w-full text-center py-2 btn-outline cursor-pointer font-bold text-xs tracking-widest">CHOOSE FILE</label>
+                    <button id="detect-button" onclick="detectAnimal()" class="w-full py-3 btn-primary font-bold text-xs tracking-widest disabled:bg-gray-100 disabled:text-gray-400" disabled>ANALYSE & DETECT</button>
+                </div>
+            </section>
+
+            <section id="status-area">
+                <div id="loading-indicator" class="hidden py-4 text-center border-t border-b border-gray-100">
+                    <span class="text-xs font-bold animate-pulse brand-text tracking-widest">SYSTEM PROCESSING...</span>
+                </div>
+
+                <!-- Result Section -->
+                <div id="result-section" class="hidden space-y-4">
+                    <div class="border-t-4 brand-border bg-white p-6 standard-border shadow-sm">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Result</h3>
+                                <h2 class="text-4xl font-black text-black" id="prediction-text">---</h2>
+                            </div>
+                            <div class="text-right">
+                                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Confidence</h3>
+                                <div class="text-2xl font-bold brand-text" id="confidence-text">0.00%</div>
+                            </div>
+                        </div>
+
+                        <!-- FACT SHEET GRID -->
+                        <div class="grid grid-cols-3 gap-2 mb-6 border-t border-b border-gray-100 py-4">
+                            <div class="text-center">
+                                <p class="text-[10px] uppercase font-bold text-gray-400">Diet</p>
+                                <p id="diet-text" class="text-sm font-semibold text-gray-800">-</p>
+                            </div>
+                            <div class="text-center border-l border-r border-gray-100">
+                                <p class="text-[10px] uppercase font-bold text-gray-400">Lifespan</p>
+                                <p id="lifespan-text" class="text-sm font-semibold text-gray-800">-</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-[10px] uppercase font-bold text-gray-400">Habitat</p>
+                                <p id="habitat-text" class="text-sm font-semibold text-gray-800">-</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Description</h3>
+                            <p class="text-gray-800 text-sm leading-relaxed" id="description-text"></p>
+                        </div>
+
+                        <div class="p-3 bg-blue-50 border border-blue-100">
+                            <h3 class="text-[10px] font-bold brand-text uppercase tracking-widest mb-1">💡 Fun Fact</h3>
+                            <p class="text-gray-700 text-xs italic" id="fun-fact-text"></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-16 pt-6 border-t border-gray-100 text-center">
+            <p class="text-[10px] text-gray-400 uppercase tracking-widest">API Endpoint: <span class="brand-text">http://127.0.0.1:5000</span></p>
+        </footer>
+    </div>
+
+<script>
+    const API_ENDPOINT = 'http://127.0.0.1:5000/predict';
+    let uploadedFile = null;
+
+    function previewImage(event) {
+        if (event.target.files && event.target.files[0]) {
+            uploadedFile = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('image-preview').src = e.target.result;
+                document.getElementById('detect-button').disabled = false;
+                // Hide previous results when a new image is picked
+                document.getElementById('result-section').classList.add('hidden');
+            }
+            reader.readAsDataURL(uploadedFile);
+        }
+    }
+
+    async function detectAnimal() {
+        if (!uploadedFile) return;
+        const btn = document.getElementById('detect-button');
+        const loader = document.getElementById('loading-indicator');
+        const resultSection = document.getElementById('result-section');
+
+        btn.disabled = true;
+        loader.classList.remove('hidden');
+        resultSection.classList.add('hidden');
+        
+        const formData = new FormData();
+        formData.append('file', uploadedFile);
+
+        try {
+            const response = await fetch(API_ENDPOINT, { method: 'POST', body: formData });
+            if (!response.ok) throw new Error("Server communication failed");
+            
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                // Basic Info
+                document.getElementById('prediction-text').textContent = data.prediction.toUpperCase();
+                document.getElementById('confidence-text').textContent = (parseFloat(data.confidence) * 100).toFixed(2) + '%';
+                
+                // Fact Sheet Data (Using || "N/A" as a fallback)
+                document.getElementById('description-text').textContent = data.data.description || "No description available.";
+                document.getElementById('diet-text').textContent = data.data.diet || "N/A";
+                document.getElementById('lifespan-text').textContent = data.data.lifespan || "N/A";
+                document.getElementById('habitat-text').textContent = data.data.habitat || "N/A";
+                document.getElementById('fun-fact-text').textContent = data.data.fun_fact || "No fun fact available.";
+
+                resultSection.classList.remove('hidden');
+            } else {
+                alert("Animal detected, but no facts found in the database.");
+            }
+        } catch (error) {
+            console.error("API Error:", error);
+            alert("Could not connect to the AI Server. Make sure animal_detection_api.py is running.");
+        } finally {
+            btn.disabled = false;
+            loader.classList.add('hidden');
+        }
+    }
+</script>
+</body>
+</html>
